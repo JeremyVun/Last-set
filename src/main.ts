@@ -62,7 +62,7 @@ let paused = false;
 let soundOn = true;
 let hovered: string | null = null;
 let lastHornStart = -1;
-let autoplay: { mode: 'echo' | 'none' | 'busy'; answerLast: boolean; planned: Set<string> } | null = null;
+let autoplay: { mode: 'echo' | 'none' | 'busy' | 'human' | 'random'; answerLast: boolean; planned: Set<string> } | null = null;
 
 function audio() {
   if (ctx) return;
@@ -260,7 +260,7 @@ async function playSong(index: number) {
   rain?.setLevel(0.55);
   room?.setLevel(0.5);
   const avg = result.scores.length ? result.scores.reduce((s, x) => s + x.q, 0) / result.scores.length : 0;
-  const recall = avg >= 0.62 ? 'I remembered nearly all of it.' : avg >= 0.42 ? 'Some of it came back.' : 'Most of that night is still blurred.';
+  const recall = avg >= 0.72 ? 'I remembered nearly all of it.' : avg >= 0.52 ? 'Some of it came back.' : 'Most of that night is still blurred.';
   const pick = await ui.choose([recall], ['Play it again', 'Continue']);
   if (pick === 0) return playSong(index);
   world.memory.setVisible(false);
@@ -478,6 +478,7 @@ function runAutoplay(perf: Performance, now: number) {
   const spb = perf.band.spb;
   const plan: { at: number; i: number; dur: number }[] = [];
   if (a.mode === 'busy') for (let k = 0; k < 14; k++) plan.push({ at: block.split + k * spb * 0.5, i: k % 8, dur: spb * 0.3 });
+  else if (a.mode === 'random') for (let k = 0; k < 4 + Math.floor(Math.random() * 3); k++) plan.push({ at: block.split + Math.random() * (block.end - block.split - 0.2), i: Math.floor(Math.random() * 8), dur: spb * 0.4 });
   else if (block.who === 'head') [4, 2, 0].forEach((i, k) => plan.push({ at: block.split + k * spb, i, dur: spb * 0.8 }));
   else {
     for (const c of calls.slice(0, 7)) {
@@ -488,6 +489,13 @@ function runAutoplay(perf: Performance, now: number) {
       plan.push({ at, i: best, dur: Math.min(c.end - c.time, spb) * 0.8 });
     }
     if (plan.length) plan[plan.length - 1].i = perf.song.home[0];
+    if (a.mode === 'human') {
+      for (const p of plan) {
+        p.at += (Math.random() + Math.random() + Math.random() - 1.5) * 0.09;
+        if (Math.random() < 0.3) p.i = Math.floor(Math.random() * 8);
+      }
+      if (Math.random() < 0.4) plan.splice(Math.floor(Math.random() * plan.length), 1);
+    }
   }
   for (const p of plan) {
     const lat = perf.latency;
@@ -498,7 +506,7 @@ function runAutoplay(perf: Performance, now: number) {
 
 if (qa) {
   const w = window as unknown as Record<string, unknown>;
-  w.__autoplay = (mode: 'echo' | 'none' | 'busy', answerLast = true) => (autoplay = { mode, answerLast, planned: new Set() });
+  w.__autoplay = (mode: 'echo' | 'none' | 'busy' | 'human' | 'random', answerLast = true) => (autoplay = { mode, answerLast, planned: new Set() });
   w.__lastSet = {
     world,
     ui,

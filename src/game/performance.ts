@@ -272,10 +272,10 @@ export class Performance {
       s.feedback = 'Wait for her phrase to finish.';
     }
     this.scores.push(s);
-    this.warmth = clamp01(this.warmth + (s.q - 0.42) * 0.48);
+    this.warmth = clamp01(this.warmth + (s.q - 0.55) * 0.5);
     this.applyWarmth();
-    this.hooks.feedback(s.feedback, s.q >= 0.62);
-    if (w.line) this.hooks.line(w.line, clamp01(0.22 + s.q * 1.05));
+    this.hooks.feedback(s.feedback, s.q >= 0.65);
+    if (w.line) this.hooks.line(w.line, clamp01((s.q - 0.3) * 1.8));
   }
 
   evaluate(w: Window, notes: Played[]): Score {
@@ -299,7 +299,7 @@ export class Performance {
         }
       }
       const e = Math.abs(best);
-      timing += e < 0.05 ? 1 : e > 0.15 ? 0 : 1 - (e - 0.05) / 0.1;
+      timing += e < 0.035 ? 1 : e > 0.11 ? 0 : 1 - (e - 0.035) / 0.075;
       drift += signed;
     }
     timing /= n;
@@ -311,7 +311,7 @@ export class Performance {
     const callSlots = slots(w.call.map((c) => this.band.beatTime(0) + c.beat * spb), this.band.beatTime(0));
     const mySlots = slots(notes.map((p) => p.time), w.start);
     let shared = 0;
-    for (const x of mySlots) if (callSlots.has(x) || callSlots.has(x - 1) || callSlots.has(x + 1)) shared++;
+    for (const x of mySlots) if (callSlots.has(x)) shared++;
     const rhythm = shared / Math.max(callSlots.size, mySlots.size);
     const dir = (a: number[]) => a.slice(1).map((x, i) => Math.sign(x - a[i]));
     const cd = dir(w.call.map((c) => midi(c.pitch)));
@@ -320,22 +320,23 @@ export class Performance {
     const len = Math.min(cd.length, md.length);
     for (let i = 0; i < len; i++) if (cd[i] === md[i]) same++;
     const contour = len > 0 ? same / len : 0;
-    const echo = 0.6 * rhythm + 0.4 * contour;
+    const echo = rhythm * (0.5 + 0.5 * contour);
     const homes = this.song.home.map((i) => this.keys[i] % 12);
     const lastPc = notes[n - 1].midi % 12;
     const fifth = (this.keys[this.song.home[0]] + 7) % 12;
-    const resolve = homes.includes(lastPc) ? 1 : lastPc === fifth ? 0.6 : 0.2;
-    const answer = Math.max(0.3, echo, resolve);
+    const resolve = homes.includes(lastPc) ? 1 : lastPc === fifth ? 0.55 : 0.1;
+    const answer = Math.max(0.15, echo, resolve * 0.75 * (0.4 + 0.6 * timing));
 
-    const q = clamp01(0.4 * timing + 0.25 * space + 0.35 * answer);
+    const q = clamp01(0.35 * timing + 0.15 * space + 0.5 * answer);
     let feedback: string;
     if (n > hi) feedback = 'Too many notes. Leave some space.';
     else if (n < lo && n <= 1) feedback = 'Try a few more notes.';
     else if (timing < 0.5) feedback = drift < 0 ? 'A little early. Wait for the beat.' : 'A little late. Stay with the beat.';
-    else if (echo >= 0.6 && echo >= resolve) feedback = 'Good answer. You echoed her.';
-    else if (resolve === 1) feedback = 'Good answer. You ended on a marked key.';
-    else if (q >= 0.62) feedback = 'Good answer.';
-    else feedback = 'Try ending on a marked key.';
+    else if (echo >= 0.6 && echo >= resolve * 0.75) feedback = 'Good answer. You echoed her.';
+    else if (resolve === 1 && q >= 0.6) feedback = 'Good answer. You ended on a marked key.';
+    else if (q >= 0.65) feedback = 'Good answer.';
+    else if (resolve === 1) feedback = 'Listen to her rhythm, then answer it.';
+    else feedback = 'Try echoing her rhythm, or end on a marked key.';
     return { q, timing, space, answer, count: n, feedback };
   }
 
