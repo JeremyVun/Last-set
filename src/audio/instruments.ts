@@ -442,21 +442,32 @@ export function ride(ctx: BaseAudioContext, dest: AudioNode, time: number, veloc
   const t = Math.max(0, time);
   const voice = new Voice(ctx);
   const stop = t + 3.6;
-  const out = voice.gain(0.9 * dyn(v, 0.2));
+  const out = voice.gain(0.5 * dyn(v, 0.2));
   out.connect(voice.filter("lowpass", 8000, 0.5)).connect(voice.panner(0.28)).connect(dest);
 
   const bank = metal(voice, 311, t, stop);
+  const ring = voice.gain(0);
+  bank.connect(ring);
+  voice.osc("square", 1370 * rand(0.99, 1.01), t, stop).connect(ring.gain);
+
   const ping = voice.gain(0);
-  bank.connect(voice.filter("bandpass", 3100, 1.6)).connect(ping).connect(out);
+  const bell = voice.filter("bandpass", 3300, 1.4);
+  ring.connect(bell);
+  bank.connect(voice.gain(0.4)).connect(bell);
+  bell.connect(voice.filter("bandpass", 3300, 1.4)).connect(ping).connect(out);
   ping.gain.setValueAtTime(0, t);
-  ping.gain.linearRampToValueAtTime(0.7, t + 0.0015);
-  ping.gain.setTargetAtTime(0.1, t + 0.0015, 0.05);
-  ping.gain.setTargetAtTime(0, t + 0.25, 0.35);
+  ping.gain.linearRampToValueAtTime(1.6, t + 0.0015);
+  ping.gain.setTargetAtTime(0.2, t + 0.0015, 0.05);
+  ping.gain.setTargetAtTime(0, t + 0.25, 0.3);
 
   const wash = voice.gain(0);
-  bank.connect(voice.filter("highpass", 4200, 0.6)).connect(wash).connect(out);
-  hit(wash.gain, t, 0.25, 0.004, 0.7);
-  landDecay(wash.gain, t + 0.004, 0.25, 0.7, stop);
+  ring
+    .connect(voice.filter("highpass", 4500, 0.7))
+    .connect(voice.filter("highpass", 4500, 0.7))
+    .connect(wash)
+    .connect(out);
+  hit(wash.gain, t, 0.45, 0.004, 0.7);
+  landDecay(wash.gain, t + 0.004, 0.45, 0.7, stop);
 
   const noise = voice.noise(t, stop);
   const air = voice.gain(0);
