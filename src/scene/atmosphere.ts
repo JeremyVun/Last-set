@@ -227,8 +227,8 @@ export function buildAtmosphere(scene: THREE.Scene, windows: THREE.Mesh[], stree
         vec2 uv = vUv;
         vec3 c = mix(vec3(0.008, 0.016, 0.03), vec3(0.03, 0.05, 0.09), uv.y);
         c = mix(c, vec3(0.3, 0.35, 0.45) * uv.y, uDawn * 0.6);
-        float lamp = exp(-pow(length((uv - vec2(0.72, 0.86)) * vec2(1.0, 1.4)) * 4.5, 2.0));
-        c += vec3(0.45, 0.6, 0.9) * lamp;
+        float lamp = exp(-pow(length((uv - vec2(0.72, 0.86)) * vec2(1.0, 1.4)) * 4.0, 2.0));
+        c += vec3(0.35, 0.5, 0.8) * lamp;
         float bricks = step(0.92, fract(uv.y * 26.0)) + step(0.95, fract(uv.x * 7.0 + floor(uv.y * 26.0) * 0.5));
         c *= 1.0 - 0.25 * clamp(bricks, 0.0, 1.0) * smoothstep(0.25, 0.4, uv.y);
         float wet = smoothstep(0.25, 0.0, uv.y);
@@ -244,7 +244,7 @@ export function buildAtmosphere(scene: THREE.Scene, windows: THREE.Mesh[], stree
           r += step(0.55, k) * smoothstep(0.6, 0.0, y) * smoothstep(0.08, 0.0, x);
         }
         c += vec3(0.55, 0.65, 0.85) * r * (0.12 + lamp * 0.8);
-        gl_FragColor = vec4(c * 1.4, 1.0);
+        gl_FragColor = vec4(c * 1.15, 1.0);
       }`,
   });
   alley.material = alleyMat;
@@ -405,7 +405,7 @@ export function buildAtmosphere(scene: THREE.Scene, windows: THREE.Mesh[], stree
       alleyMat.uniforms.uDawn.value = dawn;
       for (const m of windowShafts) {
         m.uniforms.uTime.value = t;
-        m.uniforms.uIntensity.value = 0.11 * (1 - warmth * 0.5) + dawn * 0.1;
+        m.uniforms.uIntensity.value = 0.11 * (1 - warmth * 0.5) + dawn * 0.22;
       }
       stageShaft.uniforms.uTime.value = t;
       dustMat.uniforms.uTime.value = t;

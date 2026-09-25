@@ -54,7 +54,7 @@ const GradeShader = {
         col = mix(col, blur * 0.25, uSoft * 0.6);
       }
       float flicker = 1.0 + uWarmth * 0.025 * sin(uTime * 23.0) * sin(uTime * 7.3);
-      col *= uExposure * flicker;
+      col *= uExposure * flicker * (1.0 + uDawn * 0.35);
       col = aces(col);
       float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
       vec3 hiCool = vec3(0.86, 0.95, 1.1);

@@ -60,6 +60,7 @@ export class World {
   private fogDawn = new THREE.Color(0x2a3444);
   private skyCool = new THREE.Color(0x2c4a74);
   private skyWarm = new THREE.Color(0x5a3d2a);
+  private skyDawn = new THREE.Color(0x8fa6c4);
   private barCool = new THREE.Color(0.35, 0.55, 0.9);
   private barWarm = new THREE.Color(2.2, 1.2, 0.5);
   private neonFlicker = 1;
@@ -265,12 +266,12 @@ export class World {
     L.ghost.intensity = 10 * bulb * (1 - d * 0.6);
     (L.ghostBulb.material as THREE.MeshBasicMaterial).color.setRGB(2.4 * bulb, 2 * bulb, 1.5 * bulb);
     this.atmosphere.ghostHalo.material.opacity = 0.4 * bulb;
-    L.ambient.color.copy(this.skyCool).lerp(this.skyWarm, w * 0.6);
-    L.ambient.intensity = 0.55 + w * 0.25 + d * 1.4;
-    L.street.intensity = 260 * (1 - d * 0.3);
-    L.street.color.setRGB(0.62 + d * 0.2, 0.76 + d * 0.1, 1);
-    L.dawn.intensity = d * 40;
-    this.club.dawnMat.color.setRGB(0.02 + d * 3.2, 0.03 + d * 3.4, 0.05 + d * 3.8);
+    L.ambient.color.copy(this.skyCool).lerp(this.skyWarm, w * 0.6).lerp(this.skyDawn, d);
+    L.ambient.intensity = 0.55 + w * 0.25 + d * 3.2;
+    L.street.intensity = 260 * (1 + d * 1.2);
+    L.street.color.setRGB(0.62 + d * 0.3, 0.76 + d * 0.2, 1);
+    L.dawn.intensity = d * 90;
+    this.club.dawnMat.color.setRGB(0.02 + d * 1.6, 0.03 + d * 1.75, 0.05 + d * 2.0);
     this.club.barGlowMat.color.copy(this.barCool).lerp(this.barWarm, w);
     const fog = this.scene.fog as THREE.FogExp2;
     fog.color.copy(this.fogNight).lerp(this.fogWarm, w * 0.7).lerp(this.fogDawn, d * 0.6);
@@ -281,8 +282,8 @@ export class World {
       this.neonFlicker = this.neonFlicker < 1 ? 1 : 0.35 + Math.random() * 0.3;
       this.neonNext = this.neonFlicker < 1 ? 0.04 + Math.random() * 0.1 : 2 + Math.random() * 9;
     }
-    const neon = this.neonFlicker * (1 - d * 0.7);
-    this.club.neonMat.color.setRGB(2.2 * neon, 3.2 * neon, 5 * neon);
+    const neon = this.neonFlicker * (1 - d * 0.85);
+    this.club.neonMat.color.setRGB(1.4 * neon, 2.1 * neon, 3.3 * neon);
     L.neon.intensity = 5.5 * neon;
   }
 }

@@ -201,7 +201,7 @@ function playRecord() {
 
 let doorAnim = 0;
 function openDoor(open: boolean) {
-  const target = open ? -0.55 : 0;
+  const target = open ? -1.15 : 0;
   const from = world.club.door.rotation.y;
   const start = performanceNow();
   cancelAnimationFrame(doorAnim);
@@ -535,6 +535,12 @@ if (qa) {
   if (shot && SHOTS[shot]) {
     world.cut(SHOTS[shot]);
     ui.hideTitle();
+  }
+  const look = params.get('look');
+  if (look && world.hotspot(look)) {
+    world.cut(world.inspectShot(look));
+    ui.hideTitle();
+    if (look === 'door') world.club.door.rotation.y = -1.15;
   }
   if (params.has('warmth')) world.warmthTarget = world.warmth = Number(params.get('warmth'));
   if (params.has('dawn')) world.dawnTarget = world.dawn = Number(params.get('dawn'));

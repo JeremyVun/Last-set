@@ -151,14 +151,14 @@ export function buildClub(): Club {
   const hotspots: Hotspot[] = [];
 
   const floorTex = planks([7, 3]);
-  const floorMat = new THREE.MeshStandardMaterial({ map: floorTex.map, roughnessMap: floorTex.rough, roughness: 0.7, color: 0x8a7468, envMapIntensity: 1.0 });
+  const floorMat = new THREE.MeshStandardMaterial({ map: floorTex.map, roughnessMap: floorTex.rough, roughness: 0.84, color: 0x8a7468, envMapIntensity: 1.0 });
   const brickTex = brick([5, 2]);
   const brickMat = new THREE.MeshStandardMaterial({ map: brickTex.map, bumpMap: brickTex.bump, bumpScale: 2.5, roughness: 0.92, color: 0xb0a8a8 });
   const wallMat = new THREE.MeshStandardMaterial({ map: plaster([3, 1], '#2a3748'), roughness: 0.95 });
   const ceilMat = new THREE.MeshStandardMaterial({ color: 0x07090d, roughness: 1 });
   const trimMat = new THREE.MeshStandardMaterial({ map: wood([1, 1], [34, 20, 14]), roughness: 0.5 });
   const darkWood = new THREE.MeshStandardMaterial({ map: wood([2, 1], [40, 24, 16]), roughness: 0.35, envMapIntensity: 1.2 });
-  const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.55, specularIntensity: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.07, envMapIntensity: 1.2 });
+  const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.55, specularIntensity: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.07, envMapIntensity: 0.6 });
   const brass = new THREE.MeshStandardMaterial({ color: 0xc9a26b, metalness: 1, roughness: 0.32 });
   const chrome = new THREE.MeshStandardMaterial({ color: 0xaab4c0, metalness: 1, roughness: 0.22 });
   const blackMetal = new THREE.MeshStandardMaterial({ color: 0x111317, metalness: 0.6, roughness: 0.5 });
@@ -387,7 +387,7 @@ export function buildClub(): Club {
     view: { pos: new THREE.Vector3(-6.05, 1.62, -2.72), look: new THREE.Vector3(-2.3, 1.12, -2.35) },
   });
 
-  // The envelope rests on the music desk
+  // The envelope rests on the closed lid
   const envTex = labelTexture((g, w, hh) => {
     g.fillStyle = '#d9cfb8';
     g.fillRect(0, 0, w, hh);
@@ -404,19 +404,19 @@ export function buildClub(): Club {
     g.fillStyle = '#7a3a2a';
     g.fillRect(w - 70, 16, 50, 60);
   }, 256, 180);
-  const envelope = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.16), new THREE.MeshStandardMaterial({ map: envTex, roughness: 0.9 }));
-  envelope.position.set(SPOTS.piano.x + 0.45, 0.99, SPOTS.piano.z + 0.18);
+  const envelope = new THREE.Mesh(new THREE.PlaneGeometry(0.27, 0.18), new THREE.MeshStandardMaterial({ map: envTex, roughness: 0.9, emissive: 0x2a2620 }));
+  envelope.position.set(SPOTS.piano.x + 0.45, ROOM.stageH + 0.982, SPOTS.piano.z + 0.18);
   envelope.rotation.set(-Math.PI / 2, 0, -Math.PI / 2 + 0.25);
   envelope.castShadow = true;
   root.add(envelope);
-  const envHit = box(0.4, 0.2, 0.45, new THREE.MeshBasicMaterial({ visible: false }), SPOTS.piano.x + 0.45, 1.02, SPOTS.piano.z + 0.18);
+  const envHit = box(0.4, 0.2, 0.45, new THREE.MeshBasicMaterial({ visible: false }), SPOTS.piano.x + 0.45, ROOM.stageH + 1.02, SPOTS.piano.z + 0.18);
   envHit.castShadow = false;
   root.add(envHit);
   hotspots.push({
     id: 'envelope',
     mesh: envHit,
     focus: envelope.position.clone(),
-    view: { pos: new THREE.Vector3(-5.55, 1.62, -2.9), look: new THREE.Vector3(SPOTS.piano.x + 0.45, 0.99, SPOTS.piano.z + 0.18) },
+    view: { pos: new THREE.Vector3(-5.35, 2.0, -2.75), look: new THREE.Vector3(SPOTS.piano.x + 0.45, ROOM.stageH + 0.98, SPOTS.piano.z + 0.18) },
   });
 
   // Mic stand
@@ -747,10 +747,10 @@ export function buildClub(): Club {
   const doorGroup = new THREE.Group();
   const doorX = 3.3;
   const alley = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 2.12), new THREE.MeshBasicMaterial({ color: 0x0b1626 }));
-  alley.position.set(doorX, 1.06, z0 - 0.05);
+  alley.position.set(doorX, 1.06, z0 + 0.006);
   root.add(alley);
   const doorPivot = new THREE.Group();
-  doorPivot.position.set(doorX - 0.48, 0, z0 + 0.02);
+  doorPivot.position.set(doorX - 0.48, 0, z0 + 0.04);
   const door = box(0.94, 2.1, 0.05, new THREE.MeshStandardMaterial({ color: 0x1a2330, roughness: 0.6, metalness: 0.3 }), 0.47, 1.05, 0);
   doorPivot.add(door);
   const bar1 = box(0.7, 0.05, 0.05, chrome, 0.5, 1.0, 0.05);
