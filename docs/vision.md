@@ -63,6 +63,14 @@ Two endings, both valid: **answer** (the first thing said to her in twenty-five 
 
 All synthesised with Web Audio: electric piano (the player and comping), plucked upright bass, brushes and ride, muted trumpet for Nell, rain, room tone, vinyl crackle and tape wow that rise with memory, a generated-impulse reverb. The band sequencer (comping, walking bass, drums, Nell's phrases) lives in `src/audio/band.ts`; instruments in `src/audio/instruments.ts`.
 
+## Status (2026-09-25)
+
+Built and playable end to end in about 15–20 minutes: title, prologue, hub with story and flavour objects, four songs, both endings, dawn, credits. Progress saves to localStorage. Keyboard, mouse and touch all work; Esc pauses. Both endings pass `tools/journey.mjs` with no errors.
+
+Details that differ from the first sketch: a bare "ghost light" stands on the empty stage in the present and fades as the memory warms; the envelope lies on the closed piano lid; the record plays a worn snippet of Harbor Lights when you pick it up; the back door opens onto rain in the alley. The art in `public/art/` came from Astra.
+
+Known gaps: nobody has listened to the audio yet (levels and spectra are checked, feel is not). The memory figures are stylised capsule people and could be more expressive. The scoring thresholds are tuned against an autoplayer, not a human.
+
 ## Plan
 
 1. Scaffold (Vite, TS, three 0.186). Docs.
