@@ -38,7 +38,8 @@ button { font: inherit; color: inherit; }
   color: var(--smoke); text-shadow: 0 0 40px rgba(95, 179, 255, 0.25);
 }
 .title-sub { margin: 0.9rem 0 1.6rem 0.3rem; font-style: italic; font-weight: 300; font-size: 1.3rem; color: rgba(185, 203, 224, 0.8); }
-.title .start { margin-left: 0.3rem; font-size: 1.25rem; }
+.title .start { font-size: 1.25rem; }
+.title-actions { display: flex; gap: 2.2rem; margin-left: 0.3rem; }
 .title-note { margin: 0.8rem 0 0 0.3rem; font-size: 0.9rem; color: rgba(185, 203, 224, 0.5); }
 
 .dateline {

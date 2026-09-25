@@ -39,6 +39,7 @@ export class World {
   nellPlaying = 0;
   nellPlayingTarget = 0;
   nellPulse = 0;
+  ghostOn = 1;
   playerPulse = 0;
   beat = 0;
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -81,7 +82,7 @@ export class World {
     this.scene.add(this.club.root);
     this.memory = buildMemory(this.club.chairGeometry, this.club.bassGeometry);
     this.scene.add(this.memory.group);
-    this.atmosphere = buildAtmosphere(this.scene, this.club.windows, this.club.lights.street, this.club.lights.stage);
+    this.atmosphere = buildAtmosphere(this.scene, this.club.windows, this.club.lights.street, this.club.lights.stage, this.club.alley);
     this.post = buildPost(this.renderer, this.scene, this.camera);
 
     const ring = document.createElement('canvas');
@@ -260,7 +261,7 @@ export class World {
     for (const f of L.candleFlames) (f.material as THREE.MeshBasicMaterial).color.setRGB(5 * w, 2.6 * w, 0.8 * w);
     L.bar.intensity = w * 5;
     this.club.pendantMat.color.setRGB(2 * w, 1.2 * w, 0.55 * w);
-    const bulb = Math.max(0, 1 - w * 1.1);
+    const bulb = Math.max(0, 1 - w * 1.1) * this.ghostOn;
     L.ghost.intensity = 10 * bulb * (1 - d * 0.6);
     (L.ghostBulb.material as THREE.MeshBasicMaterial).color.setRGB(2.4 * bulb, 2 * bulb, 1.5 * bulb);
     this.atmosphere.ghostHalo.material.opacity = 0.4 * bulb;

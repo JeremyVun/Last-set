@@ -9,6 +9,7 @@ import { UI } from './ui/ui.ts';
 import { credits, hubHints, inspects, lastSet, prologue, songs } from './story.ts';
 import { Performance, type SongResult } from './game/performance.ts';
 import * as I from './audio/instruments.ts';
+import { chord, midi, nearest, voicing } from './audio/theory.ts';
 
 const params = new URLSearchParams(location.search);
 const qa = params.has('qa');
@@ -113,6 +114,7 @@ async function inspect(id: string) {
   const story = steps[progress.step]?.object === id && progress.pending === null;
   if (id === 'stairs' && story) return leave();
   world.go(world.inspectShot(id), 2.0);
+  const stopRecord = id === 'record' ? playRecord() : null;
   if (id === 'door') {
     openDoor(true);
     rain?.setMuffle(0.25);
@@ -128,6 +130,7 @@ async function inspect(id: string) {
     await ui.say(it.lines);
   }
   ui.showInspect(null);
+  stopRecord?.();
   if (id === 'door') {
     openDoor(false);
     rain?.setMuffle(1);
@@ -144,6 +147,37 @@ async function inspect(id: string) {
   await wait(1200);
   busy = false;
   refreshHub();
+}
+
+// Mae's copy of Harbor Lights, heard as a worn record through the bar speakers.
+function playRecord() {
+  if (!ctx || !mixer) return () => undefined;
+  const c = ctx, m = mixer;
+  const song = songs[1];
+  const spb = 60 / song.bpm;
+  const t0 = c.currentTime + 1.2;
+  const out = c.createGain();
+  out.gain.value = 0.8;
+  out.connect(m.band);
+  m.setMemory(1, c.currentTime);
+  m.setMuffle(0.55, c.currentTime);
+  let center = 62;
+  song.form.slice(0, 4).forEach((sym, i) => {
+    const v = voicing(sym, center);
+    center = v.reduce((a, b) => a + b, 0) / v.length;
+    v.forEach((n) => I.epiano(c, out, n, t0 + i * 4 * spb, 0.32, 4 * spb * 0.95));
+    I.bass(c, out, nearest(chord(sym).root, 38, 31, 50), t0 + i * 4 * spb, 0.7, 2 * spb);
+    I.bass(c, out, nearest(chord(sym).root + 7, 40, 31, 50), t0 + (i * 4 + 2) * spb, 0.6, 2 * spb);
+    for (let b = 0; b < 4; b += 2) I.brushSweep(c, out, t0 + (i * 4 + b) * spb, 2 * spb, 0.25);
+  });
+  const phrase = [...song.exchanges[0].call, ...song.exchanges[1].call.map((n) => ({ ...n, beat: n.beat + 8 }))];
+  for (const n of phrase) I.trumpet(c, out, midi(n.pitch), t0 + n.beat * spb, n.dur * spb, 0.6, { scoop: n.fx === 'scoop', vibrato: 1 });
+  return () => {
+    out.gain.setTargetAtTime(0, c.currentTime, 0.4);
+    m.setMemory(0, c.currentTime);
+    m.setMuffle(0, c.currentTime);
+    window.setTimeout(() => out.disconnect(), 3000);
+  };
 }
 
 let doorAnim = 0;
@@ -226,6 +260,7 @@ async function finale(result: SongResult) {
   await ui.say(lines);
   world.warmthTarget = 0;
   world.dawnTarget = 1;
+  world.atmosphere.setRain(0.25);
   rain?.setLevel(0.15);
   world.go(SHOTS.hub, 5);
   await wait(4200);
@@ -242,6 +277,8 @@ async function leave() {
   world.go(SHOTS.stairs, 3);
   await wait(2200);
   await ui.say(lastSet.leave);
+  world.ghostOn = 0;
+  await wait(1200);
   world.fadeTarget = 0;
   rain?.setLevel(0, ctx!.currentTime);
   room?.setLevel(0, ctx!.currentTime);
@@ -271,7 +308,10 @@ async function begin() {
   busy = true;
   if (progress.step > 0 || progress.pending !== null) {
     world.go(SHOTS.hub, 3);
-    if (progress.step >= 5) world.dawnTarget = world.dawn = 1;
+    if (progress.step >= 5) {
+      world.dawnTarget = world.dawn = 1;
+      world.atmosphere.setRain(0.25);
+    }
     await wait(2000);
     busy = false;
     refreshHub();
@@ -387,8 +427,22 @@ world.onFrame = () => {
 world.fade = 0;
 world.fadeTarget = 1;
 world.start();
-ui.showTitle(() => void begin());
-if (progress.step > 0) ui.setHubAction(null);
+const hasSave = progress.step > 0 || progress.pending !== null;
+ui.showTitle(
+  hasSave
+    ? [
+        { label: 'Continue', run: () => void begin() },
+        {
+          label: 'Start over',
+          run: () => {
+            progress = { step: 0, pending: null };
+            save();
+            void begin();
+          },
+        },
+      ]
+    : [{ label: 'Start', run: () => void begin() }],
+);
 
 function runAutoplay(perf: Performance, now: number) {
   const a = autoplay!;

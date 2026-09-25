@@ -77,15 +77,22 @@ export class UI {
     });
   }
 
-  showTitle(onStart: () => void) {
+  showTitle(actions: { label: string; run: () => void }[]) {
     this.title.innerHTML = '';
     el('h1', 'title-name', this.title, 'Last Set');
     el('p', 'title-sub', this.title, 'A story in four songs.');
-    const start = el('button', 'text-button start', this.title, 'Start') as HTMLButtonElement;
+    const row = el('div', 'title-actions', this.title);
+    const buttons = actions.map((a) => {
+      const b = el('button', 'text-button start', row, a.label) as HTMLButtonElement;
+      b.addEventListener('click', () => {
+        buttons.forEach((x) => (x.disabled = true));
+        a.run();
+      });
+      return b;
+    });
     el('p', 'title-note', this.title, 'Best with sound on.');
-    start.addEventListener('click', () => onStart(), { once: true });
     this.title.classList.add('on');
-    setTimeout(() => start.focus(), 50);
+    setTimeout(() => buttons[0].focus(), 50);
   }
 
   hideTitle() {
