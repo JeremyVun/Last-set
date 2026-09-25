@@ -158,7 +158,7 @@ export function buildClub(): Club {
   const ceilMat = new THREE.MeshStandardMaterial({ color: 0x07090d, roughness: 1 });
   const trimMat = new THREE.MeshStandardMaterial({ map: wood([1, 1], [34, 20, 14]), roughness: 0.5 });
   const darkWood = new THREE.MeshStandardMaterial({ map: wood([2, 1], [40, 24, 16]), roughness: 0.35, envMapIntensity: 1.2 });
-  const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.55, specularIntensity: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.07, envMapIntensity: 0.6 });
+  const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.55, specularIntensity: 0.4, clearcoat: 0.8, clearcoatRoughness: 0.16, envMapIntensity: 0.6 });
   const brass = new THREE.MeshStandardMaterial({ color: 0xc9a26b, metalness: 1, roughness: 0.32 });
   const chrome = new THREE.MeshStandardMaterial({ color: 0xaab4c0, metalness: 1, roughness: 0.22 });
   const blackMetal = new THREE.MeshStandardMaterial({ color: 0x111317, metalness: 0.6, roughness: 0.5 });
@@ -180,9 +180,9 @@ export function buildClub(): Club {
   ceil.rotation.x = Math.PI / 2;
   ceil.position.set(0, h, -0.45);
   root.add(ceil);
-  const ceilFront = new THREE.Mesh(new THREE.PlaneGeometry(4.7, 0.9), ceilMat);
+  const ceilFront = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 0.9), ceilMat);
   ceilFront.rotation.x = Math.PI / 2;
-  ceilFront.position.set(x0 + 2.35, h, z1 - 0.45);
+  ceilFront.position.set(x0 + 5.25, h, z1 - 0.45);
   root.add(ceilFront);
 
   const back = new THREE.Mesh(new THREE.PlaneGeometry(W, h), wallMat);
@@ -430,7 +430,7 @@ export function buildClub(): Club {
   mic.add(pole);
   const capsule = new THREE.Mesh(
     new THREE.LatheGeometry([0, 0.03, 0.045, 0.05, 0.048, 0.04, 0.025, 0].map((r, i) => new THREE.Vector2(r, i * 0.022)), 16),
-    chrome,
+    new THREE.MeshStandardMaterial({ color: 0x8a929c, metalness: 0.8, roughness: 0.55 }),
   );
   capsule.position.y = 1.46;
   capsule.rotation.x = -0.35;
@@ -842,16 +842,22 @@ export function buildClub(): Club {
   const stairHit = box(2.0, 1.4, 1.0, new THREE.MeshBasicMaterial({ visible: false }), sx0 + 0.9, 0.7, z1 - 0.5);
   stairHit.castShadow = false;
   root.add(stairHit);
-  hotspots.push({ id: 'stairs', mesh: stairHit, focus: new THREE.Vector3(sx0 + 1, 0.8, z1 - 0.5), view: { pos: new THREE.Vector3(-0.6, 1.6, 2.6), look: new THREE.Vector3(4.5, 2.4, z1 - 0.5) } });
+  hotspots.push({ id: 'stairs', mesh: stairHit, focus: new THREE.Vector3(sx0 + 1, 0.8, z1 - 0.5), view: { pos: new THREE.Vector3(0.7, 1.55, z1 - 0.45), look: new THREE.Vector3(6.4, 4.1, z1 - 0.5) } });
   const well = new THREE.Group();
   const wellMat = new THREE.MeshStandardMaterial({ color: 0x151b24, roughness: 1, side: THREE.DoubleSide });
-  const wellBack = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 3), wellMat);
+  const wellBack = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 3), wellMat);
   wellBack.position.set(x1 - 0.01, h + 1.5, z1 - 0.5);
   wellBack.rotation.y = -Math.PI / 2;
   well.add(wellBack);
-  const wellSide = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 3), wellMat);
-  wellSide.position.set(x1 - 1.2, h + 1.5, z1 - 0.95);
-  well.add(wellSide);
+  for (const wz of [z1 - 0.95, z1 - 0.01]) {
+    const side = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3), wellMat);
+    side.position.set(x1 - 1.75, h + 1.5, wz);
+    well.add(side);
+  }
+  const wellTop = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 1), wellMat);
+  wellTop.rotation.x = Math.PI / 2;
+  wellTop.position.set(x1 - 1.75, h + 2.6, z1 - 0.5);
+  well.add(wellTop);
   const dawnMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.02, 0.03, 0.05) });
   const dawnDoor = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 2.0), dawnMat);
   dawnDoor.position.set(x1 - 0.03, h + 1.0, z1 - 0.5);
@@ -914,7 +920,7 @@ export function buildClub(): Club {
   root.add(barLight);
 
   const dawn = new THREE.PointLight(0xbcd4ff, 0, 9, 1.2);
-  dawn.position.set(x1 - 0.8, h + 0.4, z1 - 0.5);
+  dawn.position.set(x1 - 0.6, h + 1.3, z1 - 0.5);
   root.add(dawn);
 
   root.traverse((o) => {

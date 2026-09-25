@@ -131,7 +131,7 @@ export const songs: Song[] = [
     home: [0, 5],
     form: ['Dbmaj9', 'Bbm9', 'Ebm9', 'Ab13', 'Fm7', 'Bbm9', 'Ebm9', 'Ab13'],
     introBars: 2,
-    introHint: 'A ballad. Fewer notes, held longer.',
+    introHint: 'This one is a ballad. Play fewer notes and hold them longer.',
     space: [2, 6],
     exchanges: [
       {
@@ -225,7 +225,7 @@ export const songs: Song[] = [
     home: [0, 7],
     form: ['Dm9', 'Dm9', 'G13', 'G13'],
     introBars: 4,
-    introHint: 'Her postcards from Paris. Answer each one.',
+    introHint: 'Each good answer brings back one of her postcards.',
     space: [3, 8],
     exchanges: [
       {
@@ -262,10 +262,10 @@ export const songs: Song[] = [
 export const lastSet = {
   headHint: 'Nell plays her tune. The eighth bar is yours.',
   endingHint: 'Play the ending.',
-  herEnding: 'I ended it the way she ended everything.',
+  herEnding: 'I ended it the way she ended every tune.',
   answered: [
     'I answered her. It was the first thing I had said to her in twenty-five years.',
-    'We traded phrases until the windows turned grey. Then I played the last note, and she let me have it.',
+    'We traded phrases until the windows turned gray. Then I played the last note, and she let me have it.',
   ],
   letRing: [
     "I didn't answer. I let her note ring until the room was quiet.",
@@ -273,8 +273,8 @@ export const lastSet = {
   ],
   dawn: "It's getting light outside.",
   leave: [
-    'I turned off the stage light and locked the back door. Then I put Mae\'s keys through her mailbox and walked home with the tune inside my coat.',
-    'The rain had stopped.',
+    "I turn off the stage light and lock the back door. Then I put Mae's keys through her mailbox and walk home with the tune inside my coat.",
+    'The rain has stopped.',
   ],
 };
 
@@ -300,8 +300,8 @@ export const inspects: Record<string, Inspect> = {
     label: 'Record',
     image: 'art/sleeve-harbor-lights.jpg',
     lines: [
-      "Harbor Lights, by the Nell Avery Quintet. We recorded it here in 1958, after closing, on a borrowed tape machine. It's the only record she ever made.",
-      'Mae kept a copy behind the bar for twenty-eight years. She played it on slow nights.',
+      'Harbor Lights, by the Nell Avery Quintet. We recorded it here in 1958, after closing, on a borrowed tape machine.',
+      "It's the only record she ever made. Mae kept a copy behind the bar for twenty-eight years and played it on slow nights.",
       "The piano on it is me.",
     ],
   },
@@ -317,7 +317,7 @@ export const inspects: Record<string, Inspect> = {
     label: 'Envelope',
     image: 'art/lead-sheet.jpg',
     lines: [
-      "This came from Paris in June. Nell's neighbour found it in her flat, already addressed to me. I brought it tonight, and I still haven't opened it.",
+      "This came from Paris in June. Nell's neighbor found it in her flat, already addressed to me. I brought it tonight, and I still haven't opened it.",
       "Inside is a tune in her handwriting, called Last Set. There are seven bars of melody. The eighth bar is empty.",
       'At the bottom she wrote, "It needs an ending. You were always better at those."',
     ],
@@ -351,6 +351,12 @@ export const inspects: Record<string, Inspect> = {
     label: 'Stairs',
     lines: ["The stairs go up to the street. I'm not ready to leave yet."],
   },
+};
+
+// Touch screens get their own wording for the two hints that name the controls.
+export const touchText: Record<string, string> = {
+  'Click things in the room to look at them.': 'Tap things in the room to look at them.',
+  'Your turn. Answer her with the keys A S D F G H J K.': 'Your turn. Tap the keys to answer her.',
 };
 
 export const hubHints = {

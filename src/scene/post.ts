@@ -91,7 +91,7 @@ export function buildPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, cam
   // Specular spikes on the lacquer would otherwise bloom into huge discs.
   bloom.materialHighPassFilter.fragmentShader = bloom.materialHighPassFilter.fragmentShader.replace(
     'gl_FragColor = mix( outputColor, texel, alpha );',
-    'gl_FragColor = min(mix( outputColor, texel, alpha ), vec4(2.5));',
+    'gl_FragColor = min(mix( outputColor, texel, alpha ), vec4(1.6));',
   );
   bloom.materialHighPassFilter.needsUpdate = true;
   composer.addPass(bloom);

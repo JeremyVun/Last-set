@@ -333,7 +333,7 @@ export class Performance {
     else if (n < lo && n <= 1) feedback = 'Try a few more notes.';
     else if (timing < 0.5) feedback = drift < 0 ? 'A little early. Wait for the beat.' : 'A little late. Stay with the beat.';
     else if (echo >= 0.6 && echo >= resolve) feedback = 'Good answer. You echoed her.';
-    else if (resolve === 1) feedback = 'Good answer. You ended on home.';
+    else if (resolve === 1) feedback = 'Good answer. You ended on a marked key.';
     else if (q >= 0.62) feedback = 'Good answer.';
     else feedback = 'Try ending on a marked key.';
     return { q, timing, space, answer, count: n, feedback };

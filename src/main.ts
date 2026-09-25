@@ -6,13 +6,15 @@ import '@fontsource/league-gothic/400.css';
 import './style.css';
 import { World, SHOTS } from './scene/world.ts';
 import { UI } from './ui/ui.ts';
-import { credits, hubHints, inspects, lastSet, prologue, songs } from './story.ts';
+import { credits, hubHints, inspects, lastSet, prologue, songs, touchText } from './story.ts';
 import { Performance, type SongResult } from './game/performance.ts';
 import * as I from './audio/instruments.ts';
 import { chord, midi, nearest, voicing } from './audio/theory.ts';
 
 const params = new URLSearchParams(location.search);
 const qa = params.has('qa');
+const touch = matchMedia('(pointer: coarse)').matches;
+const forInput = (t: string | null) => (t && touch ? touchText[t] ?? t : t);
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const SAVE = 'last-set:v1';
 
@@ -113,7 +115,7 @@ function refreshHub() {
   } else if (step) {
     world.setMarker(step.object);
     const label = step.object === 'stairs' ? hubHints.leave : `Look at the ${inspects[step.object].label.toLowerCase()}`;
-    ui.setHubAction(step.object === 'note' ? "Read Mae's note" : label, progress.step === 0 ? hubHints.first : null);
+    ui.setHubAction(step.object === 'note' ? "Read Mae's note" : label, progress.step === 0 ? forInput(hubHints.first) : null);
   }
   ui.showSoundButton(true);
 }
@@ -231,7 +233,7 @@ async function playSong(index: number) {
   const lineMs = ((4 * 60 * 1000) / song.bpm) * 3.6;
   const done = new Promise<SongResult>((resolve) => {
     performance = new Performance(ctx!, mixer!, song, {
-      hint: (t) => ui.setHint(t),
+      hint: (t) => ui.setHint(forInput(t)),
       line: (line, clarity) => ui.showLine(line, clarity, lineMs),
       feedback: (t, good) => ui.feedback(t, good),
       warmth: (w) => (world.warmthTarget = w),
@@ -445,6 +447,7 @@ world.onFrame = () => {
 
 world.fade = 0;
 world.fadeTarget = 1;
+world.memory.setVisible(false);
 world.start();
 const hasSave = progress.step > 0 || progress.pending !== null;
 ui.showTitle(

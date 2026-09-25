@@ -14,7 +14,6 @@ canvas { display: block; }
 button { font: inherit; color: inherit; }
 .ui { position: fixed; inset: 0; pointer-events: none; }
 .ui > * { pointer-events: none; }
-.ui button { pointer-events: auto; }
 
 .text-button {
   background: none; border: 0; padding: 0.4em 0; cursor: pointer;
@@ -124,7 +123,7 @@ button { font: inherit; color: inherit; }
 .key {
   position: relative; width: clamp(34px, 8vw, 58px); height: clamp(58px, 11vh, 78px); padding: 0;
   border: 1px solid rgba(185, 203, 224, 0.28); border-radius: 3px 3px 7px 7px; cursor: pointer;
-  background: linear-gradient(to bottom, rgba(12, 22, 38, 0.72), rgba(20, 36, 60, 0.72));
+  background: linear-gradient(to bottom, rgba(8, 16, 30, 0.86), rgba(16, 30, 52, 0.86));
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8px;
   transition: background 0.08s, border-color 0.08s, box-shadow 0.12s; touch-action: none; user-select: none;
 }
@@ -172,5 +171,6 @@ button { font: inherit; color: inherit; }
 }
 @media (max-width: 640px) {
   .narration .line { font-size: 1.05rem; }
+  .hub-hint { bottom: calc(clamp(24px, 6vh, 56px) + 3rem); right: clamp(24px, 6vw, 96px); }
   .track { height: 70px; }
 }

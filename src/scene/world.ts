@@ -13,9 +13,9 @@ export interface Shot {
 export const SHOTS = {
   title: { pos: new THREE.Vector3(3.6, 1.55, 3.4), look: new THREE.Vector3(-3.4, 1.0, -3.0), fov: 40 },
   hub: { pos: new THREE.Vector3(3.5, 2.05, 3.8), look: new THREE.Vector3(-2.2, 0.8, -2.8), fov: 48 },
-  piano: { pos: new THREE.Vector3(-5.98, 1.64, -3.25), look: new THREE.Vector3(-2.7, 1.18, -2.5), fov: 56 },
+  piano: { pos: new THREE.Vector3(-6.4, 1.74, -3.1), look: new THREE.Vector3(-2.9, 1.2, -2.45), fov: 50 },
   alley: { pos: new THREE.Vector3(2.9, 1.6, -3.1), look: new THREE.Vector3(2.3, 1.3, -6.0), fov: 44 },
-  stairs: { pos: new THREE.Vector3(-0.4, 1.5, 2.2), look: new THREE.Vector3(5.2, 2.6, 4.4), fov: 48 },
+  stairs: { pos: new THREE.Vector3(0.55, 1.55, 4.55), look: new THREE.Vector3(6.4, 4.1, 4.5), fov: 52 },
 };
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -257,7 +257,7 @@ export class World {
     const w = this.warmth, d = this.dawn;
     const L = this.club.lights;
     L.stage.intensity = w * 70;
-    this.atmosphere.stageShaft.uniforms.uIntensity.value = w * 0.16;
+    this.atmosphere.stageShaft.uniforms.uIntensity.value = w * 0.11;
     L.candles.forEach((c, i) => (c.intensity = w * 2.4 * (0.85 + 0.15 * Math.sin(t * 9 + i * 3) * Math.sin(t * 5.3 + i))));
     for (const f of L.candleFlames) (f.material as THREE.MeshBasicMaterial).color.setRGB(5 * w, 2.6 * w, 0.8 * w);
     L.bar.intensity = w * 5;
@@ -270,7 +270,7 @@ export class World {
     L.ambient.intensity = 0.55 + w * 0.25 + d * 3.2;
     L.street.intensity = 260 * (1 + d * 1.2);
     L.street.color.setRGB(0.62 + d * 0.3, 0.76 + d * 0.2, 1);
-    L.dawn.intensity = d * 90;
+    L.dawn.intensity = d * 55;
     this.club.dawnMat.color.setRGB(0.02 + d * 1.6, 0.03 + d * 1.75, 0.05 + d * 2.0);
     this.club.barGlowMat.color.copy(this.barCool).lerp(this.barWarm, w);
     const fog = this.scene.fog as THREE.FogExp2;

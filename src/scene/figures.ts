@@ -23,6 +23,7 @@ uniform float uOpacity;
 uniform float uTime;
 uniform float uPulse;
 uniform float uSeed;
+uniform float uFloor;
 varying vec3 vN;
 varying vec3 vW;
 float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
@@ -43,6 +44,7 @@ void main() {
   float a = (0.34 + rim * 0.3) * (0.4 + 0.9 * n) * scan * uOpacity;
   a *= smoothstep(0.15, 0.55, drift + uOpacity * 0.5);
   a *= clamp(1.4 - dist * 0.06, 0.3, 1.0);
+  a *= 0.15 + 0.85 * smoothstep(uFloor + 0.05, uFloor + 0.75, vW.y);
   vec3 c = uColor * (0.75 + rim * 0.6 + uPulse * 1.2);
   gl_FragColor = vec4(c * a, a);
 }`;
@@ -55,6 +57,7 @@ export function ghostMaterial(color: THREE.ColorRepresentation, seed = Math.rand
       uTime: { value: 0 },
       uPulse: { value: 0 },
       uSeed: { value: seed },
+      uFloor: { value: 0 },
     },
     vertexShader: ghostVertex,
     fragmentShader: ghostFragment,
@@ -111,7 +114,7 @@ function limb(len: number, r: number, mat: THREE.Material) {
   return new THREE.Mesh(g, mat);
 }
 
-function makeHuman(mat: THREE.ShaderMaterial, pose: Pose, opts: { dress?: boolean; hair?: boolean; scale?: number; coat?: boolean } = {}) {
+function makeHuman(mat: THREE.ShaderMaterial, pose: Pose, opts: { dress?: boolean; hair?: boolean; scale?: number; coat?: boolean; hat?: boolean } = {}) {
   const root = new THREE.Group();
   const hips = new THREE.Group();
   hips.position.y = pose === 'stand' ? 0.94 : 0.5;
@@ -149,7 +152,9 @@ function makeHuman(mat: THREE.ShaderMaterial, pose: Pose, opts: { dress?: boolea
 
   const chest = new THREE.Group();
   hips.add(chest);
-  const torsoProfile = [[0.001, -0.05], [0.14, -0.02], [0.125, 0.12], [0.15, 0.28], [0.17, 0.4], [0.12, 0.47], [0.05, 0.5], [0.045, 0.56], [0.001, 0.57]];
+  const torsoProfile = opts.dress
+    ? [[0.001, -0.05], [0.14, -0.02], [0.115, 0.12], [0.14, 0.28], [0.155, 0.38], [0.12, 0.46], [0.05, 0.5], [0.042, 0.56], [0.001, 0.57]]
+    : [[0.001, -0.08], [0.16, -0.06], [0.155, 0.12], [0.17, 0.28], [0.19, 0.4], [0.15, 0.47], [0.06, 0.5], [0.048, 0.56], [0.001, 0.57]];
   const torso = new THREE.Mesh(new THREE.LatheGeometry(torsoProfile.map(([r, y]) => new THREE.Vector2(r, y)), 18), mat);
   torso.scale.z = 0.72;
   chest.add(torso);
@@ -161,6 +166,15 @@ function makeHuman(mat: THREE.ShaderMaterial, pose: Pose, opts: { dress?: boolea
   skull.scale.set(0.9, 1.08, 1);
   skull.position.y = 0.06;
   head.add(skull);
+  if (opts.hat) {
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.09, 16), mat);
+    crown.position.y = 0.16;
+    head.add(crown);
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.012, 20), mat);
+    brim.position.y = 0.12;
+    brim.rotation.x = 0.08;
+    head.add(brim);
+  }
   if (opts.hair) {
     const hair = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.62), mat);
     hair.position.set(0, 0.08, -0.012);
@@ -172,11 +186,18 @@ function makeHuman(mat: THREE.ShaderMaterial, pose: Pose, opts: { dress?: boolea
     const shoulder = new THREE.Group();
     shoulder.position.set(side * 0.2, 0.42, 0);
     chest.add(shoulder);
-    shoulder.add(limb(0.29, 0.048, mat));
+    shoulder.add(limb(0.29, 0.052, mat));
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), mat);
+    cap.scale.set(1, 0.8, 0.9);
+    shoulder.add(cap);
     const elbow = new THREE.Group();
     elbow.position.y = -0.29;
     shoulder.add(elbow);
-    elbow.add(limb(0.27, 0.04, mat));
+    elbow.add(limb(0.27, 0.042, mat));
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), mat);
+    hand.scale.set(0.8, 1.2, 0.6);
+    hand.position.y = -0.29;
+    elbow.add(hand);
     shoulder.rotation.z = side * 0.12;
     return { shoulder, elbow };
   };
@@ -233,6 +254,7 @@ export function buildMemory(chairGeometry: THREE.BufferGeometry, bassGeometry: T
     const mat = ghostMaterial(color);
     const human = makeHuman(mat, pose, opts);
     human.root.position.copy(pos);
+    mat.uniforms.uFloor.value = pos.y;
     group.add(human.root);
     queueMicrotask(() => withDepthPrepass(human.root));
     const f: Figure = { root: human.root, mat, kind, threshold, phase: Math.random() * Math.PI * 2, joints: human.joints, opacity: 0 };
@@ -246,9 +268,10 @@ export function buildMemory(chairGeometry: THREE.BufferGeometry, bassGeometry: T
   nell.root.add(horn);
   nell.prop = horn;
 
-  const bassist = add('bassist', 0.2, 'stand', SPOTS.bassist, { coat: true });
+  const bassist = add('bassist', 0.2, 'stand', SPOTS.bassist, { coat: true, hat: true });
   bassist.root.rotation.y = -0.35;
   const bassMat = ghostMaterial(amber);
+  bassMat.uniforms.uFloor.value = SPOTS.bassist.y;
   const bass = new THREE.Mesh(bassGeometry, bassMat);
   bass.position.set(-0.12, 0, 0.28);
   bass.rotation.set(-0.12, 0.3, 0.12);
@@ -262,6 +285,7 @@ export function buildMemory(chairGeometry: THREE.BufferGeometry, bassGeometry: T
   mae.root.rotation.y = -Math.PI / 2 - 0.3;
 
   const chairMat = ghostMaterial(amber, 3.3);
+  chairMat.uniforms.uFloor.value = -0.3;
   const seats: THREE.Matrix4[] = [];
   const tmp = new THREE.Object3D();
   TABLES.forEach(([tx, tz], ti) => {
@@ -279,6 +303,7 @@ export function buildMemory(chairGeometry: THREE.BufferGeometry, bassGeometry: T
         dress: (ti + s) % 2 === 0,
         hair: (ti + s) % 2 === 0,
         coat: (ti + s) % 3 === 1,
+        hat: (ti + s) % 2 === 1 && (ti * 7 + s) % 3 !== 0,
         scale: 0.94 + ((ti + s) % 4) * 0.03,
       });
       faceToward(guest.root, new THREE.Vector3(tx, 0, tz));

@@ -258,8 +258,7 @@ export class UI {
   }
 
   setSound(on: boolean) {
-    this.soundBtn.textContent = on ? 'Sound on' : 'Sound off';
-    this.soundBtn.setAttribute('aria-pressed', String(on));
+    this.soundBtn.textContent = on ? 'Turn sound off' : 'Turn sound on';
   }
 
   showSoundButton(on: boolean) {
