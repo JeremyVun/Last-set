@@ -91,7 +91,7 @@ export function groove(): { length: number; events: GrooveEvent[] } {
   };
 
   walking.forEach((bar, i) =>
-    bar.forEach((m, j) => add(at(i, j), (b, t) => bass(b.ctx, b.band, m, t, j % 2 === 0 ? 0.78 : 0.68, beat * 0.92))),
+    bar.forEach((m, j) => add(at(i, j), (b, t) => bass(b.ctx, b.band, m, t, j % 2 === 0 ? 0.72 : 0.64, beat * 0.92))),
   );
   add(at(7, 0), (b, t) => bass(b.ctx, b.band, 41, t, 0.8, beat * 3));
 
@@ -120,22 +120,22 @@ export function groove(): { length: number; events: GrooveEvent[] } {
   }
 
   const comp: [bar: number, beat: number, and: boolean, beats: number, chord: string, v: number][] = [
-    [0, 0, false, 0.7, "F7", 0.45],
-    [0, 1, true, 1.3, "F7", 0.5],
-    [1, 1, true, 0.6, "Bb7", 0.48],
-    [1, 3, false, 0.8, "Bb7", 0.42],
-    [2, 0, false, 1.5, "F7", 0.46],
-    [2, 2, true, 0.6, "F7", 0.4],
-    [3, 0, false, 0.8, "Cm7", 0.46],
-    [3, 2, false, 0.6, "F7", 0.44],
-    [3, 3, true, 1.1, "Bb7", 0.5],
-    [4, 2, false, 0.6, "Bb7", 0.4],
-    [5, 0, false, 0.7, "Bdim7", 0.45],
-    [5, 1, true, 1.2, "Bdim7", 0.46],
-    [6, 0, false, 0.8, "Gm7", 0.46],
-    [6, 1, true, 0.6, "Gm7", 0.4],
-    [6, 2, true, 1.1, "C7", 0.5],
-    [7, 0, false, 3.5, "F69", 0.5],
+    [0, 0, false, 0.7, "F7", 0.38],
+    [0, 1, true, 1.3, "F7", 0.43],
+    [1, 1, true, 0.6, "Bb7", 0.41],
+    [1, 3, false, 0.8, "Bb7", 0.35],
+    [2, 0, false, 1.5, "F7", 0.39],
+    [2, 2, true, 0.6, "F7", 0.33],
+    [3, 0, false, 0.8, "Cm7", 0.39],
+    [3, 2, false, 0.6, "F7", 0.37],
+    [3, 3, true, 1.1, "Bb7", 0.43],
+    [4, 2, false, 0.6, "Bb7", 0.33],
+    [5, 0, false, 0.7, "Bdim7", 0.38],
+    [5, 1, true, 1.2, "Bdim7", 0.39],
+    [6, 0, false, 0.8, "Gm7", 0.39],
+    [6, 1, true, 0.6, "Gm7", 0.33],
+    [6, 2, true, 1.1, "C7", 0.43],
+    [7, 0, false, 3.5, "F69", 0.43],
   ];
   for (const [bar, beatIn, and, beats, name, v] of comp) {
     add(at(bar, beatIn, and), (b, t) => chord(b, b.band, VOICINGS[name], t, beats * beat, v));
@@ -147,15 +147,15 @@ export function groove(): { length: number; events: GrooveEvent[] } {
     [17 + SWING, 1.3, 77, 0.85, { scoop: true }],
     [19, 0.45, 75, 0.75],
     [19 + SWING, 0.9, 74, 0.77],
-    [21, 0.45, 71, 0.70],
-    [21 + SWING, 0.36, 68, 0.70],
+    [21, 0.45, 71, 0.7],
+    [21 + SWING, 0.36, 68, 0.7],
     [22, 1.5, 65, 0.75],
-    [23 + SWING, 0.36, 67, 0.70],
+    [23 + SWING, 0.36, 67, 0.7],
     [24, 0.9, 70, 0.77],
     [25 + SWING, 0.36, 69, 0.73],
     [26, 0.45, 67, 0.71],
-    [26 + SWING, 0.5, 64, 0.70],
-    [27 + SWING, 0.36, 67, 0.70],
+    [26 + SWING, 0.5, 64, 0.7],
+    [27 + SWING, 0.36, 67, 0.7],
     [28, 3.2, 69, 0.77, { vibrato: 1.3 }],
   ];
   add(0, (b, t) => playPhrase(b, t, bpm, phrase));

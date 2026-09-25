@@ -60,7 +60,7 @@ const jobs: Job[] = [
   oneShot("kick", 1.5, (c, d) => kick(c, d, 0.05, 1)),
   oneShot("snap", 1, (c, d) => snap(c, d, 0.05, 1)),
   oneShot("glassClink", 3.5, (c, d) => glassClink(c, d, 0.05, 1)),
-  { ...oneShot("epiano-chord-F7", 3, (c, d) => [57, 62, 63, 67].forEach((m) => epiano(c, d, m, 0.05, 1, 1.5))), limit: 1 },
+  { ...oneShot("epiano-chord-F7-v0.8", 3, (c, d) => [57, 62, 63, 67].forEach((m) => epiano(c, d, m, 0.05, 0.8, 1.5))), limit: 1 },
 
   ...(["trumpetBallad", "trumpetSwing", "trumpetRange", "epianoChords", "epianoMelody", "bass", "ride", "brushes"] as const).map(
     (key): Job => ({

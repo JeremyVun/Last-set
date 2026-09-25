@@ -204,7 +204,7 @@ export function epiano(
   const voice = new Voice(ctx);
   const far = t + 20;
 
-  const peak = 0.21 * dyn(v, 0.12) * (1.05 - 0.2 * high);
+  const peak = 0.27 * dyn(v, 0.12) * (1.05 - 0.2 * high);
   const attack = 0.0025 + 0.004 * (1 - v);
   const amp = voice.gain(0);
   const out = voice.gain(1);
@@ -628,14 +628,16 @@ export function glassClink(
   const rebound = Math.random() < 0.55 ? rand(0.018, 0.05) : 0;
   const strike = (p: AudioParam, a: number, tau: number): void => {
     hit(p, t, a, 0.0008, tau);
-    if (rebound) {
-      const t2 = t + rebound;
-      const now = a * Math.exp(-(t2 - t - 0.0008) / tau);
-      p.setValueAtTime(now, t2);
-      p.linearRampToValueAtTime(now + 0.35 * a, t2 + 0.0008);
-      p.setTargetAtTime(0, t2 + 0.0008, tau);
+    if (!rebound) {
+      landDecay(p, t + 0.0008, a, tau, stop);
+      return;
     }
-    landDecay(p, t + rebound + 0.0008, a * 1.35, tau, stop);
+    const t2 = t + rebound;
+    const now = a * Math.exp(-(t2 - t - 0.0008) / tau);
+    p.setValueAtTime(now, t2);
+    p.linearRampToValueAtTime(now + 0.35 * a, t2 + 0.0008);
+    p.setTargetAtTime(0, t2 + 0.0008, tau);
+    landDecay(p, t2 + 0.0008, now + 0.35 * a, tau, stop);
   };
   const modes: [number, number, number][] = [
     [1, 1, 0.55],
@@ -818,7 +820,7 @@ export function createMixer(ctx: BaseAudioContext): Mixer {
   master.connect(limiter).connect(gainNode(ctx, LIMITER_TRIM)).connect(clip).connect(ctx.destination);
 
   const music = gainNode(ctx, 1);
-  const wow = node(ctx.createDelay(0.05), (d) => (d.delayTime.value = 0.004));
+  const wow = node(ctx.createDelay(0.05), (d) => (d.delayTime.value = 0.002));
   const dry = gainNode(ctx, 1);
   const wet = gainNode(ctx, 0);
   const saturate = node(ctx.createWaveShaper(), (w) => (w.curve = tapeCurve()));
@@ -869,24 +871,32 @@ export function createMixer(ctx: BaseAudioContext): Mixer {
     .connect(reverbReturn)
     .connect(music);
 
-  const bus = (send: number, threshold: number, ratio: number, attack: number, release: number): GainNode => {
-    const input = gainNode(ctx, 1);
-    const comp = node(ctx.createDynamicsCompressor(), (c) => {
-      c.threshold.value = threshold;
-      c.knee.value = 14;
-      c.ratio.value = ratio;
-      c.attack.value = attack;
-      c.release.value = release;
-    });
-    const out = gainNode(ctx, BUS_TRIM);
-    input.connect(comp).connect(out);
+  const bus = (level: number, send: number, comp?: { threshold: number; ratio: number; attack: number; release: number }): GainNode => {
+    const input = gainNode(ctx, level);
+    const out = gainNode(ctx, comp ? BUS_TRIM : 1);
+    if (comp) {
+      input
+        .connect(
+          node(ctx.createDynamicsCompressor(), (c) => {
+            c.threshold.value = comp.threshold;
+            c.knee.value = 14;
+            c.ratio.value = comp.ratio;
+            c.attack.value = comp.attack;
+            c.release.value = comp.release;
+          }),
+        )
+        .connect(out);
+    } else {
+      input.connect(out);
+    }
     out.connect(music);
     out.connect(gainNode(ctx, send)).connect(reverbIn);
     return input;
   };
-  const band = bus(0.16, -20, 2.2, 0.012, 0.22);
-  const trumpetBus = bus(0.36, -22, 2, 0.02, 0.3);
-  const piano = bus(0.22, -20, 2, 0.01, 0.25);
+  const band = bus(0.8, 0.16, { threshold: -20, ratio: 2.2, attack: 0.012, release: 0.22 });
+  const trumpetBus = bus(1, 0.36, { threshold: -22, ratio: 2, attack: 0.02, release: 0.3 });
+  // The compressor's 6 ms look-ahead would sit between a key press and its note, so the player's bus stays uncompressed.
+  const piano = bus(1, 0.22);
 
   const ambience = gainNode(ctx, 1);
   ambience.connect(master);
@@ -930,17 +940,18 @@ export function createMixer(ctx: BaseAudioContext): Mixer {
 function continuous(
   ctx: BaseAudioContext,
   dest: AudioNode,
-  build: (out: GainNode, start: number) => void,
+  build: (out: GainNode, start: number, audible: () => boolean) => void,
 ): Level {
   const out = gainNode(ctx, 0);
   out.connect(dest);
   let built = false;
+  let level = 0;
   return {
     setLevel(v, time, seconds = 1.2) {
-      const level = clamp01(v);
+      level = clamp01(v);
       if (!built && level > 0) {
         built = true;
-        build(out, ctx.currentTime);
+        build(out, ctx.currentTime, () => level > 0);
       }
       glide(out.gain, level, Math.max(time ?? ctx.currentTime, ctx.currentTime), seconds);
     },
@@ -1120,7 +1131,7 @@ export function createRoomTone(ctx: BaseAudioContext, dest: AudioNode): Level {
 }
 
 export function createCrowd(ctx: BaseAudioContext, dest: AudioNode): Level {
-  return continuous(ctx, dest, (out, start) => {
+  return continuous(ctx, dest, (out, start, audible) => {
     const room = gainNode(ctx, 0.28);
     const swell = gainNode(ctx, 1);
     swell
@@ -1206,11 +1217,11 @@ export function createCrowd(ctx: BaseAudioContext, dest: AudioNode): Level {
     let nextLaugh = start + rand(4, 14);
     eventLoop(ctx, (from, to) => {
       while (nextGlass < to) {
-        if (nextGlass >= from) glassClink(ctx, distant, nextGlass, rand(0.2, 0.7), rand(-0.8, 0.8));
+        if (nextGlass >= from && audible()) glassClink(ctx, distant, nextGlass, rand(0.2, 0.7), rand(-0.8, 0.8));
         nextGlass += 2 + expRand() * 8;
       }
       while (nextLaugh < to) {
-        if (nextLaugh >= from) laugh(nextLaugh);
+        if (nextLaugh >= from && audible()) laugh(nextLaugh);
         nextLaugh += 8 + expRand() * 16;
       }
     });
