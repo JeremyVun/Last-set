@@ -71,6 +71,25 @@ function audio() {
   rain.setLevel(0.55);
   rain.setMuffle(1);
   room.setLevel(0.5);
+  if (qa) {
+    meter = ctx.createAnalyser();
+    meter.fftSize = 2048;
+    mixer.master.connect(meter);
+  }
+}
+let meter: AnalyserNode | null = null;
+let recorder: MediaRecorder | null = null;
+const recorded: Blob[] = [];
+function levels() {
+  if (!meter) return null;
+  const buf = new Float32Array(meter.fftSize);
+  meter.getFloatTimeDomainData(buf);
+  let peak = 0, sum = 0;
+  for (const v of buf) {
+    peak = Math.max(peak, Math.abs(v));
+    sum += v * v;
+  }
+  return { peak, rms: Math.sqrt(sum / buf.length) };
 }
 
 function hubTargets() {
@@ -480,6 +499,24 @@ if (qa) {
   w.__lastSet = {
     world,
     ui,
+    levels,
+    record: () => {
+      const dest = ctx!.createMediaStreamDestination();
+      mixer!.master.connect(dest);
+      recorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 160000 });
+      recorder.ondataavailable = (e) => recorded.push(e.data);
+      recorder.start(1000);
+    },
+    stopRecording: () =>
+      new Promise<string>((resolve) => {
+        recorder!.onstop = async () => {
+          const buf = new Uint8Array(await new Blob(recorded, { type: 'audio/webm' }).arrayBuffer());
+          let bin = '';
+          for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+          resolve(btoa(bin));
+        };
+        recorder!.stop();
+      }),
     state: () => ({ mode, busy, progress, warmth: world.warmth, perf: performance ? { scores: performance.scores, warmth: performance.warmth, now: performance.now(), start: performance.band.startTime, spb: performance.band.spb } : null }),
     song: (i: number) => {
       audio();

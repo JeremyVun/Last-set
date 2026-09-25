@@ -121,7 +121,7 @@ export class Band {
     this.bassBus.gain.setTargetAtTime(l.bass * 0.95, now, 0.4);
     this.drumBus.gain.setTargetAtTime(l.drums * 0.85, now, 0.5);
     this.pulseBus.gain.setTargetAtTime(0.7 - l.drums * 0.35, now, 0.5);
-    this.crowd.setLevel(l.crowd * 0.8, now);
+    this.crowd.setLevel(l.crowd * 0.35, now);
   }
 
   player(m: number, velocity = 0.8): I.Held {

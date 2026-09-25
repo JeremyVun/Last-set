@@ -36,12 +36,16 @@ if (song === 'intro') {
 } else {
   await page.evaluate(([m, last]) => window.__autoplay(m, last === '1'), [process.env.MODE || 'echo', process.env.LAST ?? '1']);
   await page.evaluate((i) => { void window.__lastSet.song(i); }, Number(song));
+  if (process.env.REC) await page.evaluate(() => window.__lastSet.record());
+  let maxPeak = 0, rmsSum = 0, rmsN = 0, hot = 0;
   const shots = (process.env.AT || '4,14,30').split(',').map(Number);
   const t0 = Date.now();
   for (;;) {
     const s = await state();
     const t = (Date.now() - t0) / 1000;
     if (shots.length && t >= shots[0]) { await page.screenshot({ path: `${out}-s${song}-${shots.shift()}s.png` }); }
+    const lv = await page.evaluate(() => window.__lastSet.levels());
+    if (lv && s.perf) { maxPeak = Math.max(maxPeak, lv.peak); rmsSum += lv.rms; rmsN++; if (lv.peak > 0.9) hot++; }
     if (!s.perf && t > 8) break;
     if (t > 400) break;
     await page.waitForTimeout(250);
@@ -49,7 +53,13 @@ if (song === 'intro') {
   const s = await state();
   await page.waitForTimeout(2500);
   await page.screenshot({ path: `${out}-s${song}-end.png` });
-  console.log(JSON.stringify(s));
+  console.log(JSON.stringify({ ...s, audio: { maxPeak: +maxPeak.toFixed(3), avgRmsDb: +(20 * Math.log10(rmsSum / Math.max(1, rmsN))).toFixed(1), samplesOver09: hot } }));
+  if (process.env.REC) {
+    const b64 = await page.evaluate(() => window.__lastSet.stopRecording());
+    const fs = await import('node:fs');
+    fs.writeFileSync(process.env.REC, Buffer.from(b64, 'base64'));
+    console.log('recorded', process.env.REC);
+  }
 }
 if (errors.length) console.log('errors:', [...new Set(errors)].slice(0, 10).join('\n'));
 await browser.close();
